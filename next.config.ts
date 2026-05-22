@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
-
 const nextConfig: NextConfig = {
+  serverExternalPackages: ['@inngest/agent-kit', 'inngest'],
   async redirects() {
     return [
       {
@@ -11,5 +11,4 @@ const nextConfig: NextConfig = {
     ];
   },
 };
-
 export default nextConfig;

@@ -1,7 +1,7 @@
 "use client";
 
 import { LoaderIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
   Call,
@@ -32,9 +32,16 @@ export const CallConnect = ({
   userImage,
 }: Props) => {
   const trpc = useTRPC();
-  const { mutateAsync: generateToken } = useMutation(
-    trpc.meetings.generateToken.mutationOptions(),
+  const generateTokenOptions = useMemo(
+    () => trpc.meetings.generateToken.mutationOptions(),
+    [trpc],
   );
+  const { mutateAsync: mutateAsyncGenerateToken } = useMutation(
+    generateTokenOptions,
+  );
+
+  // Memoize the token provider to avoid recreating the client on every render
+  const generateToken = useCallback(mutateAsyncGenerateToken, [mutateAsyncGenerateToken]);
 
   const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {
