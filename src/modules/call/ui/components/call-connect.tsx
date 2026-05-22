@@ -64,12 +64,23 @@ export const CallConnect = ({
   }, [userId, userName, userImage, generateToken]);
 
   const [call, setCall] = useState<Call>();
+  const [joinError, setJoinError] = useState<string | null>(null);
+
   useEffect(() => {
       if (!client) return;
 
       const _call = client.call("default", meetingId);
-      _call.camera.disable();
-      _call.microphone.disable();
+      
+      // Join the call
+      _call.join({ create: true }).catch((error) => {
+        console.error("Failed to join call:", error);
+        setJoinError(error instanceof Error ? error.message : "Failed to join call");
+      });
+
+      // Enable camera and microphone after joining
+      _call.camera.enable();
+      _call.microphone.enable();
+      
       setCall(_call);
 
       return () => {
@@ -80,6 +91,17 @@ export const CallConnect = ({
         }
       };
   }, [client, meetingId]);
+
+  if (joinError) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-radial from-sidebar-accent to-sidebar">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-white mb-2">Failed to Join Call</h2>
+          <p className="text-red-400">{joinError}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!client || !call) {
     return (
