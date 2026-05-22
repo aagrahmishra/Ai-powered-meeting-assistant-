@@ -184,8 +184,6 @@ export async function POST(req: NextRequest) {
       }],
     });
 
-    disconnectAgentConnection(meetingId);
-
     try {
       console.log(`[Agent Join] Connecting OpenAI Realtime for agent ${existingAgent.id}`);
       
