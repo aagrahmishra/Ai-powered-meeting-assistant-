@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   CallControls,
   SpeakerLayout,
@@ -17,11 +17,17 @@ const VISIBLE_CAPTION_COUNT = 3;
 
 export const CallActive = ({ onLeave, meetingName }: Props) => {
   const { transcript } = useRealtimeTranscript();
+  const [renderError, setRenderError] = useState<string | null>(null);
 
   const visibleCaptions = useMemo(
     () => transcript.slice(-VISIBLE_CAPTION_COUNT),
     [transcript],
   );
+
+  const handleVideoError = (error: Error) => {
+    console.error("Video rendering error:", error);
+    setRenderError(error.message || "Failed to render video stream");
+  };
 
   return (
     <div className="relative flex flex-col justify-between p-4 h-full text-white">
@@ -33,7 +39,24 @@ export const CallActive = ({ onLeave, meetingName }: Props) => {
           {meetingName}
         </h4>
       </div>
-      <SpeakerLayout />
+      
+      {renderError ? (
+        <div 
+          className="flex-1 flex items-center justify-center bg-black/50 rounded-lg"
+          aria-label="Video error display"
+        >
+          <div className="text-center">
+            <p className="text-lg text-red-400 mb-2">⚠️ Video Stream Error</p>
+            <p className="text-sm text-white/60">{renderError}</p>
+            <p className="text-xs text-white/40 mt-2">Please try reconnecting</p>
+          </div>
+        </div>
+      ) : (
+        <div onError={() => handleVideoError(new Error("SpeakerLayout rendering failed"))}>
+          <SpeakerLayout />
+        </div>
+      )}
+      
       {visibleCaptions.length > 0 && (
         <div className="absolute bottom-20 left-0 right-0 flex justify-center px-6 pointer-events-none">
           <div className="bg-black/75 rounded-xl px-5 py-3 max-w-2xl w-full space-y-1">
@@ -51,6 +74,7 @@ export const CallActive = ({ onLeave, meetingName }: Props) => {
           </div>
         </div>
       )}
+      
       <div className="bg-[#101213] rounded-full px-4">
         <CallControls onLeave={onLeave} />
       </div>
